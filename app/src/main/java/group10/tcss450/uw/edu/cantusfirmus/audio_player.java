@@ -5,8 +5,10 @@ import android.app.ListActivity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.AudioManager;
@@ -217,7 +219,7 @@ public class audio_player extends ListActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (nf!=null) {
+        if(nf!=null) {
             nf.closeNotification();
         }
         handler.removeCallbacks(updatePositionRunnable);
@@ -266,13 +268,18 @@ public class audio_player extends ListActivity {
      * This method handles what happens when stop playing music in the audio_player.
      */
     private void stopPlay() {
-        mp.stop();
-        mp.reset();
-        playButton.setImageResource(android.R.drawable.ic_media_play);
-        handler.removeCallbacks(updatePositionRunnable);
+        if(!mp.isLooping()) {
+            if(nf!=null){
+                nf.closeNotification();
+                nf = new notification(this);
+            }
+            mp.stop();
+            mp.reset();
+            playButton.setImageResource(android.R.drawable.ic_media_play);
+            handler.removeCallbacks(updatePositionRunnable);
+            isMusicPlaying = false;
+        }
         mySeekbar.setProgress(0);
-
-        isMusicPlaying = false;
     }
 
     /**
@@ -668,10 +675,8 @@ public class audio_player extends ListActivity {
 
             double durationInMin = ((double) durationInMs / 1000.0) / 60.0;
 
-            durationInMin = new BigDecimal(Double.toString(durationInMin)).setScale(3, BigDecimal.ROUND_UP).doubleValue();
-
+            durationInMin = new BigDecimal(Double.toString(durationInMin)).setScale(2, BigDecimal.ROUND_UP).doubleValue();
             duration.setText("" + durationInMin);
-
             view.setTag(cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA)));
         }
 
@@ -700,16 +705,14 @@ public class audio_player extends ListActivity {
         public notificationRemover() {
             super();
         }
-
         @Override
-        public int onStartCommand(Intent intent, int flags, int startId) {
-            return START_STICKY;
+        public int onStartCommand(Intent intent, int flags, int startId){
+           return START_STICKY;
         }
-
         @Override
-        public void onCreate() {
+        public void onCreate(){
             HandlerThread thread = new HandlerThread("ServiceStartArguments",
-                    THREAD_PRIORITY_BACKGROUND);
+                THREAD_PRIORITY_BACKGROUND);
             thread.start();
         }
 

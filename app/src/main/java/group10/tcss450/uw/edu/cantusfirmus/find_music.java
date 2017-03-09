@@ -1,7 +1,10 @@
 package group10.tcss450.uw.edu.cantusfirmus;
 
+import android.content.Context;
 import android.app.ProgressDialog;
 import android.content.Intent;
+
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
@@ -35,6 +38,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
+
 
 /***
  * This activity is where music not in the local library can be searched for. Currently it only supports youtube.
@@ -110,10 +115,11 @@ public class find_music extends AppCompatActivity implements View.OnClickListene
                     .addHeader("postman-token", "4014accd-f315-a762-d57b-25613deb8758")
                     .build();
             Response response = client.newCall(request).execute();
-            //final File file = new File(Environment.getExternalStoragePublicDirectory(
-            //        Environment.DIRECTORY_MUSIC), query + ".mp3");
-            final File file = new File(getFilesDir(),"cache.dat");
+
+            final File file = new File(getCacheDir(),"cache.dat");
             OutputStream out = new FileOutputStream(file);
+
+
             byte buffer[] = new byte[6*1024];
             int length;
             while((length = response.body().byteStream().read(buffer))!=-1){
@@ -138,10 +144,12 @@ public class find_music extends AppCompatActivity implements View.OnClickListene
                    progressDialog.dismiss();
                    Intent intent = new Intent(find_music.this,audio_player.class);
                    Bundle b = new Bundle();
+
                    b.putString("web",file.getAbsolutePath());
                    b.putString("youtubeId", idString);
                    b.putString("imgurl" , pictureString);
                    b.putString("title", query);
+
                    intent.putExtras(b);
                    findViewById(R.id.search_btn).setEnabled(true);
                    startActivity(intent);
